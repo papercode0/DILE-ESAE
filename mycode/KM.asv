@@ -1,0 +1,68 @@
+%原始样本+拼接+聚类+降维+域适应
+clear ; close all; clc
+rng('default')
+tic;
+svm_ori = []; 
+svm_kori = [];
+svm_pori = [];
+svm_lppmmd = [];
+svm_lle = [];
+svm_our = [];
+svm_ourweidu = [];
+svm_all=[];
+for q = 1:5
+    filename = ['L2/LR/LR',num2str(q),'.mat'];
+    load (filename);
+    n = size(trainX,2);
+    train_data = trainX;
+    test_data = testX;
+ %% kmeans
+ for  p=0.5 % p=[2/3,1/2,1/3,1/4] 修改不同的聚类比例
+%   for ii=1:50
+ [m,n] = size(sample_pair_trainX);
+[idx,temp] = kmeans(sample_pair_trainX,floor(m*p));
+[l,ll]=size(temp);
+cluster_Y=[];
+for i = 1:l
+    % 挑选第i类簇
+    idx1 = find(idx==i);
+    idx2 =trainY(idx1,:)
+    M=mode(idx2)
+cluster_Y=[cluster_Y M];
+end
+cluster_Y=cluster_Y';
+cluster_X=temp;
+  model = svmtrain(cluster_Y,cluster_X,'-s 0 -c 10^5 -t 0 -q -b 1');
+  svm_kpred = svmpredict(testY,sample_pair_testX,model); %预测标签
+  svm_kori =[svm_kori mean(double(svm_kpred == testY)) * 100];  
+ end
+
+%   if q==1
+%     save("L2/Wisconsin/Wisconsin1","RJStrainX","RJStrainY","RJStestX","RJSpre_trainX","-append");
+% end
+% if q==2
+%     save("L2/Wisconsin/Wisconsin2","RJStrainX","RJStrainY","RJStestX","RJSpre_trainX","-append");
+% end
+% if q==3
+%     save("L2/Wisconsin/Wisconsin3","RJStrainX","RJStrainY","RJStestX","RJSpre_trainX","-append");
+% end
+% if q==4
+%     save("L2/Wisconsin/Wisconsin4","RJStrainX","RJStrainY","RJStestX","RJSpre_trainX","-append");
+% end
+% if q==5
+%     save("L2/Wisconsin/Wisconsin5","RJStrainX","RJStrainY","RJStestX","RJSpre_trainX","-append");
+% end
+
+end
+toc;
+fprintf('\nsvm Accuracy: %f\n',  mean(svm_ori));
+fprintf('\nsvm Accuracy: %f\n',  std(svm_ori));
+
+fprintf('\npsvm Accuracy: %f\n',  mean(svm_pori));
+fprintf('\npsvm Accuracy: %f\n',  std(svm_pori));
+
+fprintf('\nksvm Accuracy: %f\n',  mean(svm_kori));
+fprintf('\nksvm Accuracy: %f\n',  std(svm_kori));
+
+fprintf('\nllesvm Accuracy: %f\n',  mean( svm_lle));
+fprintf('\nllesvm Accuracy: %f\n',  std( svm_lle));
